@@ -1,11 +1,12 @@
 package com.axxes.traineeship.threading.exercise;
 
 import java.util.*;
+import java.util.concurrent.CyclicBarrier;
 
 public class GameOfLife {
 
-    private static final int SIZE = 100;
-    private static final int NUMBER_OF_STEPS = 50;
+    private static final int SIZE = 10;
+    private static final int NUMBER_OF_STEPS = 10;
     private static final int NUMBER_OF_THREADS = 10;        // SIZE should be evenly divisible by NUMBER_OF_THREADS;
 
     private boolean[][] board;
@@ -14,16 +15,23 @@ public class GameOfLife {
 
     private GameOfLife() {
         board = createEmptyChunk(SIZE);
-        for (int y = SIZE / 2 - 5; y < SIZE / 2 + 5; y++) {
-            board[SIZE / 2][y] = true;
-        }
+
+        // Line of 10 in middle
+        //for (int y = SIZE / 2 - 5; y < SIZE / 2 + 5; y++) {
+        //    board[SIZE / 2][y] = true;
+        //}
+
+        // Line of three
+        board[2][2] = true;
+        board[2][3] = true;
+        board[2][4] = true;
     }
 
     public static void main(String[] args) throws InterruptedException {
         GameOfLife game = new GameOfLife();
         game.log();
         long start = System.currentTimeMillis();
-        game.simulateSequentially();
+        game.simulateParallellised();
         long end = System.currentTimeMillis();
         System.out.println("Duration: " + (end - start));
     }
@@ -40,7 +48,15 @@ public class GameOfLife {
         // Use threads to calculate different chunks of the board concurrently
         // Use a barrier to synchronize the threads
         // Provide a barrier action, that will rebuild the board after each step (use combineChunks method)
-   }
+
+        int chunkSize = SIZE / 2;
+        boolean[][][] calculatedChunks = new boolean[2][SIZE][chunkSize];
+        calculatedChunks[0] = simulationStep(createEmptyChunk(chunkSize), chunkSize, 0);
+        calculatedChunks[1] = simulationStep(createEmptyChunk(chunkSize), chunkSize, chunkSize);
+        combineChunks(calculatedChunks);
+
+        CyclicBarrier barrier = new CyclicBarrier(2, () -> combineChunks(calculatedChunks));
+    }
 
     /**
      * Executes a step in the simulation for a specified chunk.
