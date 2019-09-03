@@ -1,4 +1,4 @@
-package com.axxes.traineeship.threading.exercise;
+package com.axxes.traineeship.threading.demo.part3;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,8 +7,8 @@ import java.util.concurrent.CyclicBarrier;
 
 public class GameOfLife {
 
-    private static final int SIZE = 10;
-    private static final int NUMBER_OF_STEPS = 10;
+    private static final int SIZE = 50;
+    private static final int NUMBER_OF_STEPS = 100;
     private static final int NUMBER_OF_THREADS = 10;        // SIZE should be evenly divisible by NUMBER_OF_THREADS;
 
     private boolean[][] board;
@@ -18,15 +18,15 @@ public class GameOfLife {
     private GameOfLife() {
         board = createEmptyChunk(SIZE);
 
-        // Line of 10 in middle
-        //for (int y = SIZE / 2 - 5; y < SIZE / 2 + 5; y++) {
-        //    board[SIZE / 2][y] = true;
-        //}
+        // Line of 1s in middle
+        for (int y = SIZE / 2 - 25; y < SIZE / 2 + 25; y++) {
+            board[SIZE / 2][y] = true;
+        }
 
         // Line of three
-        board[2][2] = true;
-        board[2][3] = true;
-        board[2][4] = true;
+        // board[2][2] = true;
+        // board[2][3] = true;
+        // board[2][4] = true;
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -46,28 +46,39 @@ public class GameOfLife {
     }
 
     private void simulateParallelled() throws InterruptedException {
-        // TODO implement this method
-        // Use threads to calculate different chunks of the board concurrently
-        // Use a barrier to synchronize the threads
-        // Provide a barrier action, that will rebuild the board after each step (use combineChunks method)
+        int chunkSize = SIZE / NUMBER_OF_THREADS;
+        boolean[][][] calculatedChunks = new boolean[NUMBER_OF_THREADS][SIZE][chunkSize];
 
-        int chunkSize = SIZE / 2;
-        boolean[][][] calculatedChunks = new boolean[2][SIZE][chunkSize];
-        calculatedChunks[0] = simulationStep(createEmptyChunk(chunkSize), chunkSize, 0);
-        calculatedChunks[1] = simulationStep(createEmptyChunk(chunkSize), chunkSize, chunkSize);
-        combineChunks(calculatedChunks);
-
-        CyclicBarrier barrier = new CyclicBarrier(2, () -> combineChunks(calculatedChunks));
+        CyclicBarrier barrier = new CyclicBarrier(NUMBER_OF_THREADS, () -> combineChunks(calculatedChunks));
+        List<Thread> threads = new ArrayList<>();
+        for (int i = 0; i < NUMBER_OF_THREADS; i++) {
+            int chunk = i;
+            threads.add(new Thread(() -> {
+                for (int j = 0; j < NUMBER_OF_STEPS; j++) {
+                    try {
+                        calculatedChunks[chunk] = simulationStep(createEmptyChunk(chunkSize), chunkSize, chunk * chunkSize);
+                        barrier.await();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }));
+        }
+        threads.forEach(Thread::start);
+        for (Thread thread : threads) {
+            thread.join();
+        }
     }
 
     /**
      * Executes a step in the simulation for a specified chunk.
+     *
      * @param targetChunk the chunk to be simulated
-     * @param chunkSize the width of the chunk
-     * @param startY the y-coordinate of the board with which the beginning of the chunk corresponds
+     * @param chunkSize   the width of the chunk
+     * @param startY      the y-coordinate of the board with which the beginning of the chunk corresponds
      * @return
      */
-    private boolean[][] simulationStep( boolean[][] targetChunk, int chunkSize, int startY) {
+    private boolean[][] simulationStep(boolean[][] targetChunk, int chunkSize, int startY) {
         for (int x = 0; x < SIZE; x++) {
             for (int y = 0; y < chunkSize; y++) {
                 targetChunk[x][y] = calculateNewValue(x, startY + y);

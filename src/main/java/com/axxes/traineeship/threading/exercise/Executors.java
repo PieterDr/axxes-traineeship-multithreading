@@ -1,6 +1,6 @@
 package com.axxes.traineeship.threading.exercise;
 
-public class Executor {
+public class Executors {
 
     static class ExecutorServiceExercise {
 
@@ -16,6 +16,14 @@ public class Executor {
     static class CompletionServiceExercise {
 
         // Use a CompletionService to retrieve the values of the submitted tasks
+        public static void main(String[] args) {
+
+        }
+    }
+
+    static class TaskLifecycleHooks {
+
+        // Create a ThreadPoolExecutor implementation which times the duration of executed task
         public static void main(String[] args) {
 
         }
