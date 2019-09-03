@@ -1,6 +1,8 @@
 package com.axxes.traineeship.threading.exercise;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CyclicBarrier;
 
 public class GameOfLife {
@@ -31,7 +33,7 @@ public class GameOfLife {
         GameOfLife game = new GameOfLife();
         game.log();
         long start = System.currentTimeMillis();
-        game.simulateParallellised();
+        game.simulateParallelled();
         long end = System.currentTimeMillis();
         System.out.println("Duration: " + (end - start));
     }
@@ -43,7 +45,7 @@ public class GameOfLife {
         }
     }
 
-    private void simulateParallellised() throws InterruptedException {
+    private void simulateParallelled() throws InterruptedException {
         // TODO implement this method
         // Use threads to calculate different chunks of the board concurrently
         // Use a barrier to synchronize the threads
