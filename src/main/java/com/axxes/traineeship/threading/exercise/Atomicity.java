@@ -8,13 +8,12 @@ public class Atomicity {
     // integer repeatedly, without proper synchronisation, 1,000,000 times,
     // printing the result at the end of the program.
     //
-    // Now modify the program to use synchronisation to ensure that increments
-    // on the shared variable are atomic.
+    // Now use an atomic variable to fix the problem
     public static void main(String[] args) {
 
     }
 
-    //TODO make test class succeed
+    //TODO make unit test pass (AtomicityTest.java)
     static class BrokenCache {
 
         private String lastKey;
