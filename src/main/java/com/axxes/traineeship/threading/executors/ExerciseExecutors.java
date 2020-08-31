@@ -61,7 +61,7 @@ public class ExerciseExecutors {
          * and prints the duration of submitted tasks.
          */
         public static void main(String[] args) {
-            TimingExecutor executor = new TimingExecutor();
+            ThreadLocalTimingExecutor executor = new ThreadLocalTimingExecutor();
 
             executor.submit(() -> {
                 try {
@@ -117,6 +117,27 @@ public class ExerciseExecutors {
                 long taskDuration = System.currentTimeMillis() - threadTimerMap.get(runnable);
                 System.out.println(Thread.currentThread().getName() + ": task took " + taskDuration + "ms");
                 threadTimerMap.remove(runnable);
+            }
+        }
+
+        static class ThreadLocalTimingExecutor extends ThreadPoolExecutor {
+
+            private final ThreadLocal<Long> startTimestamp = new ThreadLocal<>();
+
+            public ThreadLocalTimingExecutor() {
+                super(2, 2, 0L, SECONDS, new ArrayBlockingQueue<>(4));
+            }
+
+            @Override
+            protected void beforeExecute(Thread thread, Runnable runnable) {
+                System.out.println(Thread.currentThread().getName() + ": starting task...");
+                startTimestamp.set(System.currentTimeMillis());
+            }
+
+            @Override
+            protected void afterExecute(Runnable runnable, Throwable t) {
+                long taskDuration = System.currentTimeMillis() - startTimestamp.get();
+                System.out.println(Thread.currentThread().getName() + ": task took " + taskDuration + "ms");
             }
         }
     }
