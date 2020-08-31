@@ -15,7 +15,36 @@ public class ExerciseQueues {
      *
      * In a second step, improve the design of the program by using blocking queues.
      */
-    public static void main(String[] args) {
-        // TODO implement
+    public static void main(String[] args) throws InterruptedException {
+        Thread t1 = new Thread(() -> {
+            requestQueue.add("hello");
+            requestQueue.add("world!");
+            while (true) {
+                Object response = responseQueue.poll();
+                if (response != null) System.out.println(response);
+                sleep(5);
+            }
+        });
+        Thread t2 = new Thread(() -> {
+            while (true) {
+                Object request = requestQueue.poll();
+                if (request != null) responseQueue.offer("Response: " + request);
+                sleep(5);
+            }
+        });
+
+        t1.start();
+        t2.start();
+
+        t1.join();
+        t2.join();
+    }
+
+    private static void sleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
