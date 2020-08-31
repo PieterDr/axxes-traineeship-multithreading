@@ -1,8 +1,10 @@
 package com.axxes.traineeship.threading.basicconcepts;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class ExerciseAtomicity {
 
-    private static int counter = 0;
+    private static AtomicInteger counter = new AtomicInteger(0);
 
     /*
      * Atomic Variables
@@ -14,7 +16,22 @@ public class ExerciseAtomicity {
      * Use an atomic variable to fix the problem
      */
     public static void main(String[] args) throws InterruptedException {
-        // TODO implement
+        Thread t0 = new Thread(() -> increment(1_000_000));
+        Thread t1 = new Thread(() -> increment(1_000_000));
+
+        t0.start();
+        t1.start();
+
+        t0.join();
+        t1.join();
+
+        System.out.println("Count: " + counter);
+    }
+
+    private static void increment(int n) {
+        for (int i = 0; i < n; i++) {
+            counter.incrementAndGet();
+        }
     }
 
     /*
@@ -29,12 +46,18 @@ public class ExerciseAtomicity {
         private int lastValue;
 
         public int getNrOfCharacters(String input) {
-            if (input.equalsIgnoreCase(lastKey)) {
-                return lastValue;
+            synchronized (this) {
+                if (input.equalsIgnoreCase(lastKey)) {
+                    return lastValue;
+                }
             }
+
             int result = input.length();
-            lastKey = input;
-            lastValue = result;
+
+            synchronized (this) {
+                lastKey = input;
+                lastValue = result;
+            }
             return result;
         }
     }
