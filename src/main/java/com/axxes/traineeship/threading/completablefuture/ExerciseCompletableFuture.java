@@ -1,8 +1,13 @@
 package com.axxes.traineeship.threading.completablefuture;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.IntStream;
+
+import static java.util.stream.Collectors.toList;
 
 public class ExerciseCompletableFuture {
 
@@ -17,10 +22,23 @@ public class ExerciseCompletableFuture {
      * With some parallelization you should be able to make this program terminate in under a second.
      */
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        IntStream.rangeClosed(1, 100)
+        List<CompletableFuture<String>> downloadTasks = IntStream.rangeClosed(1, 100)
                 .mapToObj(i -> "https://www.images.com/" + i)
-                .map(ExerciseCompletableFuture::downloadImage)
-                .forEach(System.out::println);
+                .map(url -> CompletableFuture
+                        .supplyAsync(() -> downloadImage(url))
+                        .exceptionally(error -> {
+                                    System.out.println(error.getMessage());
+                                    return null;
+                                }
+                        ))
+                .collect(toList());
+
+        CompletableFuture.allOf(downloadTasks.toArray(new CompletableFuture[0]))
+                .thenAccept(v -> downloadTasks.stream()
+                        .map(CompletableFuture::join)
+                        .filter(Objects::nonNull)
+                        .forEach(System.out::println))
+                .get();
     }
 
     private static String downloadImage(String url) {
