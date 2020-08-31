@@ -1,12 +1,12 @@
 package com.axxes.traineeship.threading.buildingblocks;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 public class ExerciseQueues {
 
-    private static Queue<Object> requestQueue = new LinkedList<>();
-    private static Queue<Object> responseQueue = new LinkedList<>();
+    private static BlockingQueue<Object> requestQueue = new ArrayBlockingQueue<>(10);
+    private static BlockingQueue<Object> responseQueue = new ArrayBlockingQueue<>(10);
 
     /*
      * Write a program in which 2 threads communicate through the given 2 queues.
@@ -17,19 +17,26 @@ public class ExerciseQueues {
      */
     public static void main(String[] args) throws InterruptedException {
         Thread t1 = new Thread(() -> {
-            requestQueue.add("hello");
-            requestQueue.add("world!");
-            while (true) {
-                Object response = responseQueue.poll();
-                if (response != null) System.out.println(response);
-                sleep(5);
+            try {
+                requestQueue.put("hello");
+                requestQueue.put("world!");
+                while (true) {
+                    Object response = responseQueue.poll();
+                    if (response != null) System.out.println(response);
+                    sleep(5);
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException();
             }
         });
         Thread t2 = new Thread(() -> {
             while (true) {
-                Object request = requestQueue.poll();
-                if (request != null) responseQueue.offer("Response: " + request);
-                sleep(5);
+                try {
+                    responseQueue.offer("Response: " + requestQueue.take());
+                    sleep(5);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
 
