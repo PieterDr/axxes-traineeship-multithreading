@@ -1,13 +1,9 @@
 package com.axxes.traineeship.threading.completablefuture;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.IntStream;
-
-import static java.util.stream.Collectors.toList;
 
 public class ExerciseCompletableFuture {
 
@@ -22,23 +18,23 @@ public class ExerciseCompletableFuture {
      * With some parallelization you should be able to make this program terminate in under a second.
      */
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        List<CompletableFuture<String>> downloadTasks = IntStream.rangeClosed(1, 100)
+        IntStream.rangeClosed(1, 100)
+                .parallel()
                 .mapToObj(i -> "https://www.images.com/" + i)
-                .map(url -> CompletableFuture
-                        .supplyAsync(() -> downloadImage(url))
-                        .exceptionally(error -> {
-                                    System.out.println(error.getMessage());
-                                    return null;
-                                }
-                        ))
-                .collect(toList());
+                .map(url -> completableFutureDownload(url))
+                .forEach(CompletableFuture::join);
+    }
 
-        CompletableFuture.allOf(downloadTasks.toArray(new CompletableFuture[0]))
-                .thenAccept(v -> downloadTasks.stream()
-                        .map(CompletableFuture::join)
-                        .filter(Objects::nonNull)
-                        .forEach(System.out::println))
-                .get();
+    private static CompletableFuture<Void> completableFutureDownload(String url) {
+        return CompletableFuture
+                .supplyAsync(() -> downloadImage(url))
+                .exceptionally(error -> {
+                    System.out.println(error.getMessage());
+                    return null;
+                })
+                .thenAccept(image -> {
+                    if (image != null) System.out.println(image);
+                });
     }
 
     private static String downloadImage(String url) {
