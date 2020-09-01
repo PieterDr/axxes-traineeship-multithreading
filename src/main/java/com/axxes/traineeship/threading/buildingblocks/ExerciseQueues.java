@@ -5,8 +5,8 @@ import java.util.concurrent.BlockingQueue;
 
 public class ExerciseQueues {
 
-    private static BlockingQueue<Object> requestQueue = new ArrayBlockingQueue<>(10);
-    private static BlockingQueue<Object> responseQueue = new ArrayBlockingQueue<>(10);
+    private static BlockingQueue<String> requestQueue = new ArrayBlockingQueue<>(10);
+    private static BlockingQueue<String> responseQueue = new ArrayBlockingQueue<>(10);
 
     /*
      * Write a program in which 2 threads communicate through the given 2 queues.
@@ -21,8 +21,8 @@ public class ExerciseQueues {
                 requestQueue.put("hello");
                 requestQueue.put("world!");
                 while (true) {
-                    Object response = responseQueue.poll();
-                    if (response != null) System.out.println(response);
+                    String response = responseQueue.take();
+                    System.out.println(response);
                     sleep(5);
                 }
             } catch (InterruptedException e) {
@@ -32,7 +32,7 @@ public class ExerciseQueues {
         Thread t2 = new Thread(() -> {
             while (true) {
                 try {
-                    responseQueue.offer("Response: " + requestQueue.take());
+                    responseQueue.put("Response: " + requestQueue.take());
                     sleep(5);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
