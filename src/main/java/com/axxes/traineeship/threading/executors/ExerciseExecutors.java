@@ -61,41 +61,33 @@ public class ExerciseExecutors {
          * and prints the duration of submitted tasks.
          */
         public static void main(String[] args) {
-            ThreadLocalTimingExecutor executor = new ThreadLocalTimingExecutor();
+            TimingExecutor executor = new TimingExecutor();
 
             executor.submit(() -> {
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                sleep(5000);
             });
 
             executor.submit(() -> {
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                sleep(3000);
             });
 
             executor.submit(() -> {
-                try {
-                    Thread.sleep(4000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                sleep(4000);
             });
 
             executor.submit(() -> {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                sleep(2000);
             });
 
             executor.shutdown();
+        }
+
+        private static void sleep(int millis) {
+            try {
+                Thread.sleep(millis);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         static class TimingExecutor extends ThreadPoolExecutor {
